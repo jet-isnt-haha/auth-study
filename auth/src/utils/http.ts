@@ -29,11 +29,19 @@ const http: AxiosInstance = axios.create({
 
 http.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
+    //需要跳过token校验的接口
+    const skipAuthUrls = ["/login", "register", "/refresh-token"];
+    if (skipAuthUrls.some((url) => config.url?.includes(url))) {
+      return config;
+    }
+
+    //校验accesstoken
     const accessToken = useAuthStore.getState().token;
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
       return config;
     }
+
     //若无accessToken，则在后端校验refreshToken
     try {
       //调用store里的refresh(其会请求/refresh-token,浏览器自动带cookie)
@@ -57,7 +65,7 @@ http.interceptors.request.use(
 http.interceptors.response.use(
   (response: AxiosResponse) => {
     const { code, data, message } = response.data;
-    if (code !== 200) {
+    if (code !== "success") {
       return Promise.reject(new Error(message || "请求失败"));
     }
     return data;
@@ -67,8 +75,21 @@ http.interceptors.response.use(
     if (error.response) {
       switch (error.response.status) {
         case 401:
-        //...
+          //登录过期/未认证，强制登出并跳转
+          return handleAuthFailure();
+        case 403:
+          //无权限
+          alert("没有权限访问该资源");
+          break;
+        case 500:
+          alert("服务器错误，请稍后重试");
+          break;
+        default:
+          alert(error.response.data?.message || "请求出错");
       }
+    } else {
+      //网络错误或无响应
+      alert("网络异常，请检查网络连接");
     }
     return Promise.reject(error);
   }

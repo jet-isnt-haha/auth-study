@@ -1,11 +1,16 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { LoginSchema, type FormData } from "@/schemas/authSchema";
+import { useAuthStore } from "@/stores";
 
 const Login = () => {
+  const navigate = useNavigate();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const login = useAuthStore((state) => state.login);
 
   //初始化useForm钩子
   const {
@@ -15,34 +20,38 @@ const Login = () => {
   } = useForm<FormData>({
     resolver: zodResolver(LoginSchema), //使用zodResolver集成验证
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
+  const handleLogin = async (data: FormData) => {
+    setIsSubmitting(true);
+    try {
+      await login(data.email, data.password);
+      //登录成功
+      navigate("/");
+    } catch (error: any) {
+      alert(error.message || "登录失败");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div>
       <h1>Login</h1>
-      <form
-        onSubmit={handleSubmit((data) => {
-          setIsSubmitting(true);
-          console.log(data);
-          setTimeout(() => {
-            setIsSubmitting(false);
-          }, 3000);
-        })}
-      >
+      <form onSubmit={handleSubmit(handleLogin)}>
         <div>
-          <label htmlFor="username">username</label>
+          <label htmlFor="email">email</label>
           <input
             type="text"
-            id="username"
-            {...register("username")}
+            id="email"
+            {...register("email")}
             disabled={isSubmitting}
           />
-          {errors.username && (
+          {errors.email && (
             <p style={{ color: "red", fontSize: "14px" }}>
-              {errors.username.message}
+              {errors.email.message}
             </p>
           )}
         </div>

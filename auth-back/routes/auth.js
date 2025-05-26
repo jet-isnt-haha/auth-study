@@ -1,19 +1,23 @@
 const express = require('express');
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
+const { v4: uuidv4 } = require('uuid');
 const router = express.Router();
-const UserModel = require('../models/UserModel')
+const UserModel = require('../models/UserModel');
+const { redisClient } = require('../utils');
+
+
 
 router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
 
         //查找用户
-        const user = await UserModel.find({ email });
+        const user = await UserModel.findOne({ email });
         if (!user) {
             return res.status(401).json({ code: 'emailorpwderror', msg: '用户不存在' })
         }
         //校验密码
-        const isMatch = await user.comparePassowrd(password);
+        const isMatch = await user.comparePassword(password);
 
         if (!isMatch) {
             return res.status(401).json({
@@ -31,11 +35,14 @@ router.post('/login', async (req, res) => {
             { expiresIn: '15m' }
         )
 
-        //refresh只用查找唯一的用户故payload只有id参数
-        const refreshToken = jwt.sign(
-            { userId: user._id },
-            'refresh_secret',
-            { expiresIn: '7d' }
+        //生成refreshToken（随机字符串）
+        const refreshToken = uuidv4();
+
+        //存入Redis，设置过期时间（通常来说是7天与其cookie时间一致也与Redis的性质相符
+        await redisClient.set(
+            `refreshToken:${refreshToken}`,
+            JSON.stringify({ userId: user._id, userAgent: req.header['user-agent'] }),
+            { EX: 7 * 24 * 60 * 60 }
         )
 
         //设置refresh-token的cookie，使其相对安全
@@ -45,19 +52,22 @@ router.post('/login', async (req, res) => {
             sameSite: 'strict',//只允许同源请求携带，防止CSRF
             maxAge: 7 * 24 * 60 * 60 * 1000
         })
-
         //返回accessToken和用户信息
         return res.json({
-            accessToken,
-            user: {
-                id: user._id,
-                email: user.email,
-                name: user.name,
-                role: user.role
+            code: 'success',
+            msg: 'login success',
+            data: {
+                accessToken,
+                user: {
+                    id: user._id,
+                    email: user.email,
+                    name: user.name,
+                    role: user.role
+                }
             }
-
         })
     } catch (error) {
+        console.log(error);
         return res.status(500).json({
             code: 'serverError',
             msg: '服务器错误'

@@ -3,10 +3,10 @@ import { z } from "zod";
 
 //定义验证schema(检查运行时的数据类型)
 export const LoginSchema = z.object({
-  username: z
+  email: z
     .string()
-    .nonempty("username is required")
-    .min(3, "username must be at least 3 character"),
+    .nonempty("email is required")
+    .email("email format is invalid"),
   password: z
     .string()
     .nonempty("password is required")

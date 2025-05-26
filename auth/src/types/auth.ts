@@ -1,11 +1,7 @@
 export interface User {
   id: string;
   email: string;
-  role: string[];
-}
-
-export interface UserInfo extends User {
-  id: string;
+  role: string;
 }
 
 export interface AuthState {
@@ -13,7 +9,7 @@ export interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   error: string | null;
-  roles: string[];
+  role: string | null;
 }
 
 export interface AuthActions {
