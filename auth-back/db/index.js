@@ -1,3 +1,5 @@
+const config = require('../config')
+
 module.exports = function (sucess, error) {
     if (typeof error !== 'function') {
         error = () => {
@@ -9,10 +11,10 @@ module.exports = function (sucess, error) {
     const mongoose = require('mongoose');
 
     //导入配置项
-    const { DBHOST, DBPORT, DBNAME } = require('../config/index');
+    const { host, port, name } = config.db;
 
     //连接mongodb服务
-    mongoose.connect(`mongodb://${DBHOST}:${DBPORT}/${DBNAME}`);
+    mongoose.connect(`mongodb://${host}:${port}/${name}`);
 
     //设置回调
     mongoose.connection.once('open', () => {

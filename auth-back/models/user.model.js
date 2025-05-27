@@ -1,3 +1,4 @@
+//模型层处理数据
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt')
 
