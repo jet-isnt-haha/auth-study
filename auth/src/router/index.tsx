@@ -9,7 +9,7 @@ const router = createBrowserRouter([
   {
     //spa
     path: "/",
-    element: <AppPage />,
+    element: <div>home</div>,
     children: [{ index: true }],
   },
   {
