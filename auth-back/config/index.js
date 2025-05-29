@@ -1,4 +1,4 @@
-require('dotenv').config;
+require('dotenv').config();
 
 module.exports = {
     db: {
@@ -14,5 +14,11 @@ module.exports = {
         refreshSecret: process.env.JWT_REFRESH_SECRET || 'refresh_secret',
         accessExpireIn: '15m',
         refreshExpiresIn: '7d'
+    },
+    email: {
+        host: process.env.EMAIL_HOST,
+        port: process.env.EMAIL_PORT,
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
     }
 }

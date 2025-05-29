@@ -2,7 +2,7 @@ import type { AuthState, AuthActions } from "@/types/auth";
 import { create } from "zustand";
 import { loginAPI } from "@/apis";
 
-const useAuthStore = create<AuthState & AuthActions>()((set, get) => ({
+const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   user: null,
   token: null,
   isAuthenticated: false,
@@ -12,10 +12,10 @@ const useAuthStore = create<AuthState & AuthActions>()((set, get) => ({
     try {
       const res = await loginAPI({ email, password });
       set({
-        user: res.user,
-        token: res.accessToken,
+        user: res.data!.user,
+        token: res.data!.accessToken,
         isAuthenticated: true,
-        role: res.user.role,
+        role: res.data!.user.role,
       });
     } catch (error: any) {
       set({

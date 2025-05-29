@@ -1,9 +1,11 @@
 import { RegisterSchema, type RegisterFormData } from "@/schemas/authSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useVerificationStore } from "@/stores";
 
 const Registry = () => {
+  const { sendEmailCode, isSending, countdown, error } = useVerificationStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   //初始化useForm钩子
@@ -11,14 +13,40 @@ const Registry = () => {
     register,
     handleSubmit,
     formState: { errors },
+    getValues,
   } = useForm<RegisterFormData>({
     resolver: zodResolver(RegisterSchema),
   });
 
+  const handleSendCode = async () => {
+    const email = getValues("email");
+    if (!email) {
+      alert("请输入邮箱");
+      return;
+    }
+    try {
+      await sendEmailCode(email);
+      alert("验证码已发送");
+    } catch (err) {
+      alert("发送验证码失败");
+    }
+  };
+
+  const onSubmit = async (data: RegisterFormData) => {
+    setIsSubmitting(true);
+    try {
+      // 调用注册 API
+    } catch (error: any) {
+      alert(error.message || "注册失败");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div>
       <h1>Registry</h1>
-      <form>
+      <form onSubmit={handleSubmit(onSubmit)}>
         {/* email */}
         <div>
           <label htmlFor="email">email</label>
@@ -55,7 +83,7 @@ const Registry = () => {
         <div>
           <label htmlFor="confirmPassword">confirmPassword</label>
           <input
-            type="confirmPassword"
+            type="password"
             id="confirmPassword"
             {...register("confirmPassword")}
             disabled={isSubmitting}
@@ -76,7 +104,9 @@ const Registry = () => {
             {...register("emailCode")}
             disabled={isSubmitting}
           />
-          <button type="button">sendEmailCode</button>
+          <button type="button" onClick={handleSendCode} disabled={isSending}>
+            sendEmailCode{countdown ? countdown + "秒后可重新发送" : ""}
+          </button>
           {errors.emailCode && (
             <p style={{ color: "red", fontSize: "14px" }}>
               {errors.emailCode.message}
@@ -101,7 +131,9 @@ const Registry = () => {
           )}
         </div>
 
-        <button>submit</button>
+        <button type="submit" disabled={isSubmitting}>
+          submit
+        </button>
       </form>
     </div>
   );

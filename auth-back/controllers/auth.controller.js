@@ -1,9 +1,6 @@
 //控制器处理请求/响应;
-const config = require('../config');
 
-
-
-const createAuthController = ({ authService }) => {
+const createAuthController = ({ authService, verificationService, emailSendService }) => {
     const login = async (req, res) => {
         try {
             const { email, password } = req.body;
@@ -25,7 +22,6 @@ const createAuthController = ({ authService }) => {
             });
 
         } catch (error) {
-            console.log('gggg');
             return res.status(error.status || 500).json({
                 code: error.code || 'serverError',
                 msg: error.message || '服务器错误'
@@ -33,8 +29,30 @@ const createAuthController = ({ authService }) => {
         }
     };
 
+    const sendEmailCode = async (req, res) => {
+        try {
+            const { email } = req.body;
+            const code = verificationService.generateEmailCode();
+
+            await Promise.all([
+                verificationService.saveEmailCode(email, code),
+                emailSendService.sendVerificationCode(email, code)
+            ])
+            return res.json({
+                code: 'success',
+                msg: 'verified code has sended',
+            })
+        } catch (error) {
+            return res.status(500).json({
+                code: 'error',
+                msg: error.message || 'failed to send',
+            })
+        }
+    }
+
     return {
-        login
+        login,
+        sendEmailCode,
     };
 }
 

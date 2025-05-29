@@ -1,7 +1,10 @@
-import refreshToken from "./refreshToken";
-import accessToken from "./accessToken";
+const refreshToken = require('./refreshToken');
+const accessToken = require('./accessToken');
+const emailCodeLimiter = require('./emailCodeLimiter')
 
-exports = {
+
+module.exports = {
     refreshToken,
-    accessToken
+    accessToken,
+    emailCodeLimiter,
 }

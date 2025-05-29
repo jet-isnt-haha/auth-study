@@ -13,8 +13,8 @@ function handleAuthFailure() {
 }
 
 //定义API响应类型
-interface IApiResponse<T> {
-  data: T;
+export interface IApiResponse<T = any> {
+  data: T | null;
   code: number;
   message: string;
 }
@@ -30,7 +30,12 @@ const http: AxiosInstance = axios.create({
 http.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     //需要跳过token校验的接口
-    const skipAuthUrls = ["/login", "register", "/refresh-token"];
+    const skipAuthUrls = [
+      "/login",
+      "register",
+      "/refresh-token",
+      "/email-code",
+    ];
     if (skipAuthUrls.some((url) => config.url?.includes(url))) {
       return config;
     }
