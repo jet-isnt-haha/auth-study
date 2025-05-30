@@ -1,6 +1,5 @@
 //验证模式文件
 import { z } from "zod";
-import { email } from "zod/v4";
 
 //定义验证schema(检查运行时的数据类型)
 export const LoginSchema = z.object({
