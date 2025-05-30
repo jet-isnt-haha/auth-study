@@ -24,4 +24,7 @@ router.post('/login', authController.login);
 //发送邮箱验证码路哟
 router.post('/email-code', emailCodeLimiter, authController.sendEmailCode);
 
+//注册路由
+router.post('/register', authController.register);
+
 module.exports = router;

@@ -1,10 +1,12 @@
-import type { User } from "@/types/auth";
-import { apiPost, type IApiResponse } from "@/utils";
-interface SendEmailCodeRequest {
-  email: string;
-}
-export const loginAPI = (data: { email: string; password: string }) =>
+import type { LoginForm, RegisterForm, User } from "@/types/auth";
+import { apiPost } from "@/utils";
+import type { IApiResponse } from "@/types/http";
+
+export const loginAPI = (data: LoginForm) =>
   apiPost<IApiResponse<{ accessToken: string; user: User }>>("/login", data);
 
-export const emailCodeAPI = (data: SendEmailCodeRequest) =>
-  apiPost<IApiResponse<SendEmailCodeRequest>>("/email-code", data);
+export const emailCodeAPI = (data: { email: string }) =>
+  apiPost<IApiResponse>("/email-code", data);
+
+export const registerAPI = (data: RegisterForm) =>
+  apiPost<IApiResponse>("/register", data);

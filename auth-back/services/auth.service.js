@@ -24,7 +24,7 @@ const createAuthService = ({ userModel, redisClient }) => {
             throw error;
         }
         return user;
-    }
+    };
 
 
     const generateTokens = (userId, role) => {
@@ -37,7 +37,7 @@ const createAuthService = ({ userModel, redisClient }) => {
         const refreshToken = uuidv4();
 
         return { accessToken, refreshToken };
-    }
+    };
 
     const updateRefreshToken = async (refreshToken, userId, userAgent) => {
         //先查找该用户现有的token
@@ -62,7 +62,7 @@ const createAuthService = ({ userModel, redisClient }) => {
             refreshToken,
             { EX: 7 * 24 * 60 * 60 }
         )
-    }
+    };
 
     //公开方法
     const login = async (email, password, userAgent) => {
@@ -79,6 +79,10 @@ const createAuthService = ({ userModel, redisClient }) => {
                 role: user.role
             }
         }
+    };
+
+    const register = () => {
+
     }
     return {
         login

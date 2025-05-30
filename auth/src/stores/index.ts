@@ -1,4 +1,4 @@
 import useAuthStore from "./authStore";
-import useVerificationStore from "./codeStore";
+import useCodeStore from "./codeStore";
 
-export { useAuthStore, useVerificationStore };
+export { useAuthStore, useCodeStore };

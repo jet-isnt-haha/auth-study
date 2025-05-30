@@ -1,3 +1,16 @@
+export interface LoginForm {
+  email: string;
+  password: string;
+}
+
+export interface RegisterForm {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  emailCode: string;
+  captcha: string;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -13,8 +26,9 @@ export interface AuthState {
 }
 
 export interface AuthActions {
-  login: (email: string, password: string) => Promise<void>;
+  login: (data: LoginForm) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
   initialize: () => Promise<void>;
+  register: (data: RegisterForm) => Promise<void>;
 }

@@ -48,11 +48,22 @@ const createAuthController = ({ authService, verificationService, emailSendServi
                 msg: error.message || 'failed to send',
             })
         }
+    };
+
+
+    const register = async () => {
+        try {
+
+
+        } catch (error) {
+
+        }
     }
 
     return {
         login,
         sendEmailCode,
+        register,
     };
 }
 

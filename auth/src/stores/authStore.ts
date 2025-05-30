@@ -1,6 +1,11 @@
-import type { AuthState, AuthActions } from "@/types/auth";
+import type {
+  AuthState,
+  AuthActions,
+  LoginForm,
+  RegisterForm,
+} from "@/types/auth";
 import { create } from "zustand";
-import { loginAPI } from "@/apis";
+import { loginAPI, registerAPI } from "@/apis";
 
 const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   user: null,
@@ -8,9 +13,12 @@ const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   isAuthenticated: false,
   error: null,
   role: null,
-  login: async (email, password) => {
+  login: async (data: LoginForm) => {
     try {
-      const res = await loginAPI({ email, password });
+      const res = await loginAPI(data);
+
+      console.log(res.msg);
+
       set({
         user: res.data!.user,
         token: res.data!.accessToken,
@@ -19,7 +27,7 @@ const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
       });
     } catch (error: any) {
       set({
-        error: error.message || "登录失败",
+        error: error.message || "failed to login",
         isAuthenticated: false,
         user: null,
         token: null,
@@ -31,6 +39,18 @@ const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   logout: async () => {},
   refresh: async () => {},
   initialize: async () => {},
+  register: async (data: RegisterForm) => {
+    try {
+      const res = await registerAPI(data);
+
+      console.log(res.msg);
+    } catch (error: any) {
+      set({
+        error: error.message || "failed to register",
+      });
+      throw error;
+    }
+  },
 }));
 
 export default useAuthStore;

@@ -12,13 +12,6 @@ function handleAuthFailure() {
   return Promise.reject(new Error("登录已过期,请重新登录"));
 }
 
-//定义API响应类型
-export interface IApiResponse<T = any> {
-  data: T | null;
-  code: number;
-  message: string;
-}
-
 //创建Axios实例
 const http: AxiosInstance = axios.create({
   baseURL: "/api",
@@ -32,7 +25,7 @@ http.interceptors.request.use(
     //需要跳过token校验的接口
     const skipAuthUrls = [
       "/login",
-      "register",
+      "/register",
       "/refresh-token",
       "/email-code",
     ];

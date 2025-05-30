@@ -1,11 +1,17 @@
 import { RegisterSchema, type RegisterFormData } from "@/schemas/authSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useVerificationStore } from "@/stores";
+import { useCodeStore, useAuthStore } from "@/stores";
+import { useNavigate } from "react-router-dom";
 
 const Registry = () => {
-  const { sendEmailCode, isSending, countdown, error } = useVerificationStore();
+  const { sendEmailCode, isSending, countdown, error } = useCodeStore();
+
+  const _register = useAuthStore((state) => state.register);
+
+  const navigate = useNavigate();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   //初始化useForm钩子
@@ -32,10 +38,11 @@ const Registry = () => {
     }
   };
 
-  const onSubmit = async (data: RegisterFormData) => {
+  const handleRegister = async (data: RegisterFormData) => {
     setIsSubmitting(true);
     try {
-      // 调用注册 API
+      await _register(data);
+      navigate("/login");
     } catch (error: any) {
       alert(error.message || "注册失败");
     } finally {
@@ -46,7 +53,7 @@ const Registry = () => {
   return (
     <div>
       <h1>Registry</h1>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(handleRegister)}>
         {/* email */}
         <div>
           <label htmlFor="email">email</label>

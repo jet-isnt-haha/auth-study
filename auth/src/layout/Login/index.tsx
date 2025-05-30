@@ -27,7 +27,7 @@ const Login = () => {
   const handleLogin = async (data: LoginFormData) => {
     setIsSubmitting(true);
     try {
-      await login(data.email, data.password);
+      await login(data);
       //登录成功
       navigate("/");
     } catch (error: any) {

@@ -17,8 +17,9 @@ const createEmailSendService = () => {
     const sendVerificationCode = async (toEmail, code) => {
         try {
             await transporter.sendMail({
-                from: '<j3tty_s0da@qq.com>',//发件人
+                from: `<${config.email.user}>`,//发件人
                 to: toEmail,//收件人
+                subject: '[Jet-verified_code]',
                 html: `
                   <div style="padding: 20px; background-color: #f8f9fa; border-radius: 5px;">
                         <h2 style="color: #333;">您的验证码是：</h2>
