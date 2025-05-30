@@ -9,6 +9,8 @@ const createAuthController = require('../controllers/auth.controller');
 const createEmailSendService = require('../services/email-send.service');
 const createVerificationService = require('../services/verification.service');
 const { emailCodeLimiter } = require('../middlewares');
+
+
 //依赖注入(通过工厂函数注入依赖,便于测试和维护)
 const authService = createAuthService({ userModel: UserModel, redisClient });
 

@@ -46,17 +46,35 @@ const createAuthController = ({ authService, verificationService, emailSendServi
             return res.status(500).json({
                 code: 'error',
                 msg: error.message || 'failed to send',
+
             })
         }
     };
 
 
-    const register = async () => {
+    const register = async (req, res) => {
         try {
+            const { email, password, confirmPassword, emailCode, captcha } = req.body;
 
+            const ansCaptcha = req.session.captcha;
+            delete req.session.captcha;
+            await Promise.all([
+                verificationService.verifyEmailCode(email, emailCode),
+                verificationService.verifyConfirmPassword(confirmPassword, password),
+                verificationService.verifyCaptcha(captcha, ansCaptcha),
+            ])
+
+            await authService.register(email, password);
+            return res.json({
+                code: 'success',
+                msg: 'register success',
+            })
 
         } catch (error) {
-
+            return res.status(error.status || 500).json({
+                code: error.code || 'serverError',
+                msg: error.message || '服务器错误'
+            })
         }
     }
 

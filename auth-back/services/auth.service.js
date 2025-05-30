@@ -64,28 +64,59 @@ const createAuthService = ({ userModel, redisClient }) => {
         )
     };
 
+
+
     //公开方法
     const login = async (email, password, userAgent) => {
-        const user = await validateUser(email, password);
 
-        const tokens = generateTokens(user._id, user.role);
-        await updateRefreshToken(tokens.refreshToken, user._id, userAgent);
-        return {
-            tokens,
-            user: {
-                id: user._id,
-                email: user.email,
-                name: user.name,
-                role: user.role
+        try {
+            const user = await validateUser(email, password);
+
+            const tokens = generateTokens(user._id, user.role);
+            await updateRefreshToken(tokens.refreshToken, user._id, userAgent);
+            return {
+                tokens,
+                user: {
+                    id: user._id,
+                    email: user.email,
+                    name: user.name,
+                    role: user.role
+                }
+            }
+        } catch (error) {
+            console.error("用户登录失败：", error);
+            if (error.message === 'Invalid credentials' || error.message === 'User not found') {
+                throw error;
+            }
+            else {
+                throw new Error("Login failed due to an internal server error. Please try again later.");
             }
         }
+
     };
 
-    const register = () => {
+    const register = async (email, password) => {
+        try {
+            const user = await userModel.create({
+                email,
+                password,
+                name: uuidv4().slice(-6).toString(),
+            })
+            return user;
+        } catch (error) {
+            console.error("用户注册失败：", error);
+            if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
+                throw new Error("This email address is already registered.");
+            }
+            else {
+                throw new Error("Failed to register user. Please try again later.");
+            }
+        }
 
     }
     return {
-        login
+        login,
+        register
     };
 }
 

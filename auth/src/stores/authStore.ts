@@ -16,9 +16,6 @@ const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   login: async (data: LoginForm) => {
     try {
       const res = await loginAPI(data);
-
-      console.log(res.msg);
-
       set({
         user: res.data!.user,
         token: res.data!.accessToken,
@@ -43,7 +40,7 @@ const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
     try {
       const res = await registerAPI(data);
 
-      console.log(res.msg);
+      console.log(res);
     } catch (error: any) {
       set({
         error: error.message || "failed to register",

@@ -24,7 +24,6 @@ const useCodeStore = create<CodeState & CodeActions>((set, get) => ({
         set((state) => ({
           countdown: state.countdown > 0 ? state.countdown - 1 : 0,
         }));
-        console.log(get().countdown);
         if (get().countdown === 0) {
           clearInterval(timer);
           set({ isSending: false });

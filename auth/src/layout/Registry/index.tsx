@@ -1,11 +1,13 @@
 import { RegisterSchema, type RegisterFormData } from "@/schemas/authSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useCodeStore, useAuthStore } from "@/stores";
 import { useNavigate } from "react-router-dom";
 
 const Registry = () => {
+  const imgRef = useRef<HTMLImageElement>(null);
+
   const { sendEmailCode, isSending, countdown, error } = useCodeStore();
 
   const _register = useAuthStore((state) => state.register);
@@ -130,7 +132,15 @@ const Registry = () => {
             {...register("captcha")}
             disabled={isSubmitting}
           />
-          <img src="" alt="" />
+          <img
+            src="/captcha"
+            alt="验证码"
+            ref={imgRef}
+            onClick={() => {
+              imgRef.current!.src = "/captcha?" + Date.now(); /* 避免缓存 */
+            }}
+            style={{ cursor: "pointer" }}
+          />
           {errors.captcha && (
             <p style={{ color: "red", fontSize: "14px" }}>
               {errors.captcha.message}
