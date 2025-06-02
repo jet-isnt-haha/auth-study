@@ -1,4 +1,6 @@
 //控制器处理请求/响应;
+const { SUCCESS } = require('../constants');
+const config = require('../config');
 
 const createAuthController = ({ authService, verificationService, emailSendService }) => {
     const login = async (req, res) => {
@@ -6,15 +8,15 @@ const createAuthController = ({ authService, verificationService, emailSendServi
             const { email, password } = req.body;
             const userAgent = req.headers['user-agent'];
             const result = await authService.login(email, password, userAgent);
+
             res.cookie('refreshToken', result.tokens.refreshToken, {
                 httpOnly: true,
                 // secure:true
                 sameSite: 'strict',//只允许同源请求携带，防止CSRF
-                maxAge: 7 * 24 * 60 * 60,//** 配置修改处*/
+                maxAge: config.jwt.refreshExpiresIn,
             })
             return res.json({
-                code: 'success',
-                msg: 'login success',
+                ...SUCCESS.LOGIN,
                 data: {
                     accessToken: result.tokens.accessToken,
                     user: result.user
@@ -22,7 +24,7 @@ const createAuthController = ({ authService, verificationService, emailSendServi
             });
 
         } catch (error) {
-            return res.status(error.status || 500).json({
+            return res.status(error.status).json({
                 code: error.code || 'serverError',
                 msg: error.message || '服务器错误'
             })
@@ -39,14 +41,12 @@ const createAuthController = ({ authService, verificationService, emailSendServi
                 emailSendService.sendVerificationCode(email, code)
             ])
             return res.json({
-                code: 'success',
-                msg: 'verified code has sended',
+                ...SUCCESS.EMAIL_CODE
             })
         } catch (error) {
-            return res.status(500).json({
-                code: 'error',
-                msg: error.message || 'failed to send',
-
+            return res.status(error.status).json({
+                code: error.code,
+                msg: error.message,
             })
         }
     };
@@ -58,6 +58,7 @@ const createAuthController = ({ authService, verificationService, emailSendServi
 
             const ansCaptcha = req.session.captcha;
             delete req.session.captcha;
+
             await Promise.all([
                 verificationService.verifyEmailCode(email, emailCode),
                 verificationService.verifyConfirmPassword(confirmPassword, password),
@@ -66,12 +67,11 @@ const createAuthController = ({ authService, verificationService, emailSendServi
 
             await authService.register(email, password);
             return res.json({
-                code: 'success',
-                msg: 'register success',
+                ...SUCCESS.REGISTER
             })
 
         } catch (error) {
-            return res.status(error.status || 500).json({
+            return res.status(error.status).json({
                 code: error.code || 'serverError',
                 msg: error.message || '服务器错误'
             })

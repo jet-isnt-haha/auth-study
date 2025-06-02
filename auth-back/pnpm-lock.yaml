@@ -44,6 +44,9 @@ importers:
       morgan:
         specifier: ~1.9.1
         version: 1.9.1
+      ms:
+        specifier: ^2.1.3
+        version: 2.1.3
       nodemailer:
         specifier: ^7.0.3
         version: 7.0.3

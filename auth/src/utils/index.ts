@@ -1,4 +1,3 @@
-import http, { apiGet, apiPost, type IApiResponse } from "./http";
+import http, { apiGet, apiPost } from "./http";
 
 export { http, apiGet, apiPost };
-export type { IApiResponse };

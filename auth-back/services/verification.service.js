@@ -1,7 +1,8 @@
-const { redisClient } = require("../utils");
-
+const { ERRORS } = require('../constants');
+const config = require('../config');
 //验证码服务
 const createVerificationService = ({ redisClient }) => {
+
 
     const generateEmailCode = () => {
         return Math.floor(Math.random() * 900000 + 100000).toString().slice(-6);
@@ -9,19 +10,20 @@ const createVerificationService = ({ redisClient }) => {
 
     const saveEmailCode = async (email, code) => {
         await redisClient.set(
-            `email_code:${email}`,
+            config.redis.prefix.emailCode(email),
             code,
-            { EX: 10 * 60 }
+            { EX: config.email.emailExpiresIn }
         )
     };
 
     const verifyEmailCode = async (email, code) => {
-        const savedCode = await redisClient.get(`email_code:${email}`);
+        const savedCode = await redisClient.get(config.redis.prefix.emailCode(email));
         if (!savedCode || savedCode !== code) {
-            throw new Error('验证码无效或已过期');
+            throw ERRORS.AUTH.INVALID_EMAIL_CODE;
         }
+
         //验证成功后删除
-        await redisClient.del(`email_code:${email}`);
+        await redisClient.del(config.redis.prefix.emailCode(email));
     };
 
     const verifyConfirmPassword = async (confirmPassword, password) => {
@@ -29,7 +31,7 @@ const createVerificationService = ({ redisClient }) => {
             if (confirmPassword === password) {
                 resolve();
             } else {
-                reject(new Error("Confirm password does not match password"));
+                reject(ERRORS.AUTH.INVALID_CONFIRM_PWD);
             }
         })
     };
@@ -39,7 +41,7 @@ const createVerificationService = ({ redisClient }) => {
             if (ansCaptcha === captcha) {
                 resolve();
             } else {
-                reject(new Error("captcha is not correct"));
+                reject(ERRORS.AUTH.INVALID_CAPTCHA);
             }
         })
     }

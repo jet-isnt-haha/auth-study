@@ -1,6 +1,7 @@
 //服务层处理业务逻辑
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
+const { ERRORS } = require('../constants');
 const config = require('../config');
 
 
@@ -11,17 +12,11 @@ const createAuthService = ({ userModel, redisClient }) => {
     const validateUser = async (email, password) => {
         const user = await userModel.findOne({ email });
         if (!user) {
-            const error = new Error('用户不存在');
-            error.status = 401;
-            error.code = 'emailorpwderror';
-            throw error;
+            throw ERRORS.AUTH.USER_NOT_FOUND;
         }
         const isMatch = await user.comparePassword(password);
         if (!isMatch) {
-            const error = new Error('密码错误');
-            error.status = 401;
-            error.code = 'emailorpwderror';
-            throw error;
+            throw ERRORS.AUTH.INVALID_CREDENTIALS;
         }
         return user;
     };
@@ -31,7 +26,7 @@ const createAuthService = ({ userModel, redisClient }) => {
         const accessToken = jwt.sign(
             { userId, role },
             config.jwt.accessSecret,
-            { expiresIn: config.jwt.accessExpireIn }
+            { expiresIn: config.jwt.accessExpiresIn }
         );
 
         const refreshToken = uuidv4();
@@ -41,26 +36,26 @@ const createAuthService = ({ userModel, redisClient }) => {
 
     const updateRefreshToken = async (refreshToken, userId, userAgent) => {
         //先查找该用户现有的token
-        const oldToken = await redisClient.get(`user:${userId}:token`);
+        const oldToken = await redisClient.get(config.redis.prefix.userToken(userId));
 
         //如果存在旧的refreshToken，删除它
         if (oldToken) {
-            await redisClient.del(`refresh:${oldToken}`);
+            await redisClient.del(config.redis.prefix.refreshToken(oldToken));
         }
 
 
         //保存新的refreshToken
         await redisClient.set(
-            `refresh:${refreshToken}`,
+            config.redis.prefix.refreshToken(refreshToken),
             JSON.stringify({ userId, userAgent }),
-            { EX: 7 * 24 * 60 * 60 }
+            { EX: config.jwt.refreshExpiresIn }
         )
 
         //更新用户的refreshToken映射（该机制防止同一端多次登录产生多个refreshtoken与用户信息的键值对在redis中）
         await redisClient.set(
-            `user:${userId}:token`,
+            config.redis.prefix.userToken(userId),
             refreshToken,
-            { EX: 7 * 24 * 60 * 60 }
+            { EX: config.jwt.refreshExpiresIn }
         )
     };
 
@@ -84,12 +79,10 @@ const createAuthService = ({ userModel, redisClient }) => {
                 }
             }
         } catch (error) {
-            console.error("用户登录失败：", error);
-            if (error.message === 'Invalid credentials' || error.message === 'User not found') {
+            if (error.code) {
                 throw error;
-            }
-            else {
-                throw new Error("Login failed due to an internal server error. Please try again later.");
+            } else {
+                throw ERRORS.AUTH.LOGIN_FAILED;
             }
         }
 
@@ -104,12 +97,11 @@ const createAuthService = ({ userModel, redisClient }) => {
             })
             return user;
         } catch (error) {
-            console.error("用户注册失败：", error);
             if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
-                throw new Error("This email address is already registered.");
+                throw ERRORS.AUTH.EXISTED_USER;
             }
             else {
-                throw new Error("Failed to register user. Please try again later.");
+                throw ERRORS.AUTH.REGISTER_FAILED;
             }
         }
 

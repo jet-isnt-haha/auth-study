@@ -44,6 +44,7 @@ const Registry = () => {
     setIsSubmitting(true);
     try {
       await _register(data);
+      alert("注册成功！");
       navigate("/login");
     } catch (error: any) {
       alert(error.message || "注册失败");

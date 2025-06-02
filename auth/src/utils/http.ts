@@ -62,16 +62,21 @@ http.interceptors.request.use(
 
 http.interceptors.response.use(
   (response: AxiosResponse) => {
-    const { code, data, message } = response.data;
-    if (code !== "success") {
-      return Promise.reject(new Error(message || "请求失败"));
+    const { code, data } = response.data;
+
+    if (code === 0) {
+      return data;
     }
-    return data;
   },
   (error) => {
     //统一处理HTTP错误
     if (error.response) {
+      const { status, data } = error.response;
+      console.log(status, data);
       switch (error.response.status) {
+        case 400:
+          alert(data.msg);
+          break;
         case 401:
           //登录过期/未认证，强制登出并跳转
           return handleAuthFailure();
@@ -80,10 +85,10 @@ http.interceptors.response.use(
           alert("没有权限访问该资源");
           break;
         case 500:
-          alert("服务器错误，请稍后重试");
+          alert(data.msg || "服务器错误，请稍后重试");
           break;
         default:
-          alert(error.response.data?.message || "请求出错");
+          alert(data.msg || "未知错误");
       }
     } else {
       //网络错误或无响应
