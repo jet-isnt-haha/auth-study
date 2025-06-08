@@ -1,0 +1,24 @@
+// auth-monorepo/tsconfig.json (Root)
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "bundler", // 或 "node"
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "composite": true,
+    "noEmit": true, // 根目录不直接编译代码
+    "jsx": "preserve",
+    "sourceMap": true,
+    "baseUrl": "."
+  },
+  "references": [
+    { "path": "./apps/auth-front/tsconfig.json" }
+    // { "path": "./packages/shared-types/tsconfig.json" } // 如果有共享包
+  ]
+}
