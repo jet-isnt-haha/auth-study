@@ -30,8 +30,8 @@ const Login = () => {
       await login(data);
       //登录成功
       navigate("/");
-    } catch (error: any) {
-      alert(error.message || "登录失败");
+    } catch (error) {
+      console.log(error);
     } finally {
       setIsSubmitting(false);
     }

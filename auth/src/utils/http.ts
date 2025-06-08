@@ -4,13 +4,8 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from "axios";
 import { useAuthStore } from "@/stores";
-
-//全局认证失败处理函数
-function handleAuthFailure() {
-  useAuthStore.getState().logout();
-  window.location.href = "/login";
-  return Promise.reject(new Error("登录已过期,请重新登录"));
-}
+import { errorHandler } from "./error";
+import { ErrorType } from "@/types/error";
 
 //创建Axios实例
 const http: AxiosInstance = axios.create({
@@ -45,12 +40,12 @@ http.interceptors.request.use(
       //调用store里的refresh(其会请求/refresh-token,浏览器自动带cookie)
       await useAuthStore.getState().refresh();
       const newAccessToken = useAuthStore.getState().token;
-      if (!newAccessToken) return handleAuthFailure();
+      if (!newAccessToken) return errorHandler.handlerAuthError();
       config.headers.Authorization = `Bearer ${newAccessToken}`;
       return config;
     } catch (error) {
       console.error("refresh token error:", error);
-      return handleAuthFailure();
+      return errorHandler.handlerAuthError();
     }
   },
   (error) => {
@@ -66,35 +61,21 @@ http.interceptors.response.use(
 
     if (code === 0) {
       return data;
+    } else {
+      // 业务错误，例如后端返回 code != 0 但 HTTP 状态码仍是 200
+      // 此时可以根据后端返回的 code 和 msg 进行处理
+      // 我们可以选择抛出错误，让后续的 catch 捕获并统一处理
+      // 这里我们直接调用 errorHandler.handleError 来处理业务逻辑错误
+      return errorHandler.handleError({
+        type: ErrorType.BUSINESS, // 或者定义一个更具体的 ErrorType
+        message: response.data.msg || "业务处理失败",
+        options: { showNotification: true }, // 默认显示通知
+      });
     }
   },
   (error) => {
     //统一处理HTTP错误
-    if (error.response) {
-      const { status, data } = error.response;
-      console.log(status, data);
-      switch (error.response.status) {
-        case 400:
-          alert(data.msg);
-          break;
-        case 401:
-          //登录过期/未认证，强制登出并跳转
-          return handleAuthFailure();
-        case 403:
-          //无权限
-          alert("没有权限访问该资源");
-          break;
-        case 500:
-          alert(data.msg || "服务器错误，请稍后重试");
-          break;
-        default:
-          alert(data.msg || "未知错误");
-      }
-    } else {
-      //网络错误或无响应
-      alert("网络异常，请检查网络连接");
-    }
-    return Promise.reject(error);
+    return errorHandler.handlerHttpError(error);
   }
 );
 

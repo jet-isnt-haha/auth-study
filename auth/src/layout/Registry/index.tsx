@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 const Registry = () => {
   const imgRef = useRef<HTMLImageElement>(null);
 
-  const { sendEmailCode, isSending, countdown, error } = useCodeStore();
+  const { sendEmailCode, isSending, countdown } = useCodeStore();
 
   const _register = useAuthStore((state) => state.register);
 
@@ -35,8 +35,9 @@ const Registry = () => {
     try {
       await sendEmailCode(email);
       alert("验证码已发送");
-    } catch (err) {
-      alert("发送验证码失败");
+    } catch (error) {
+      console.error("Failed to send email code:", error);
+      alert("发送验证码失败，请稍后重试");
     }
   };
 
@@ -46,8 +47,8 @@ const Registry = () => {
       await _register(data);
       alert("注册成功！");
       navigate("/login");
-    } catch (error: any) {
-      alert(error.message || "注册失败");
+    } catch (error) {
+      console.log(error);
     } finally {
       setIsSubmitting(false);
     }
